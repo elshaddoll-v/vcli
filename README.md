@@ -1,46 +1,58 @@
 # vcli
 
-**A declarative package management CLI tool for Void Linux**, inspired by [dcli](https://gitlab.com/theblackdon/dcli) and NixOS. Define your entire system in YAML files, organize packages into reusable modules, and sync your setup across machines.
+A declarative package manager for **Void Linux**, inspired by [dcli](https://gitlab.com/theblackdon/dcli) and NixOS.
 
-> A full port of dcli — same architecture, same config format, same commands — but for Void Linux using `xbps` and `runit` instead of `pacman`/`systemd`.
+Define your entire system in YAML. One command installs everything on a fresh machine.
 
-Built with Rust. Zero runtime dependencies.
+```
+vcli sync          # apply your config to the system
+vcli install nvim  # install + track a package
+vcli doctor        # full system health check
+vcli theme         # apply wallpaper + generate colors
+```
+
+Built with Rust. Zero runtime dependencies. Works with any shell.
 
 ---
 
-## Installation
+## Install on a fresh Void Linux
 
-```bash
-git clone <this-repo> ~/vcli
-cd ~/vcli
+```sh
+sudo xbps-install -Sy git curl
+
+# Clone and build
+git clone https://github.com/elshaddoll-v/vcli.git
+cd vcli
+chmod +x install.sh
 ./install.sh
 ```
 
-**Prerequisites:**
-- Void Linux
-- Rust toolchain (installer handles this)
+The installer:
+1. Installs Rust if not present
+2. Builds vcli from source
+3. Copies the binary to `/usr/local/bin/vcli`
 
-**Optional:**
-- `fzf` — for interactive TUI features (`xbps-install -S fzf`)
-- `flatpak` — for flatpak support
-- `git` — for config sync across machines
+**Requirements:** Void Linux (glibc or musl), git
+
+**Optional:** `fzf` for interactive menus, `python3-pywal` for theming
 
 ---
 
 ## Quick Start
 
-```bash
-# 1. Initialize config
+```sh
+# Initialize config
 vcli init
 
-# 2. Edit your host config
-vcli edit
+# See what's on your system
+vcli status
+vcli list
 
-# 3. Sync system to match config
+# Track all currently installed packages
+vcli merge
+
+# Sync system to match config
 vcli sync
-
-# 4. Preview changes before applying
-vcli sync --dry-run
 ```
 
 ---
@@ -49,219 +61,244 @@ vcli sync --dry-run
 
 ```
 ~/.config/void-config/
-├── config.yaml           # Pointer to active host
+├── config.yaml              # points to your host file
 ├── hosts/
-│   └── {hostname}.yaml   # Your full configuration
+│   └── mymachine.yaml       # your full system config
 ├── modules/
-│   ├── base.yaml         # Base packages
-│   ├── gaming.yaml       # Example module
-│   └── desktop/          # Directory module
-│       ├── module.yaml
-│       ├── packages.yaml
-│       └── dotfiles/
-└── state/                # Auto-managed state
+│   ├── base.yaml            # essential packages
+│   ├── desktop.yaml         # X11, WM, apps
+│   ├── development.yaml     # dev tools
+│   └── gaming.yaml          # optional modules
+└── state/                   # auto-managed, gitignored
 ```
 
-### Host File (`hosts/{hostname}.yaml`)
+### Host file (`hosts/mymachine.yaml`)
 
 ```yaml
-host: myvoidbox
+host: mymachine
 description: My Void Linux desktop
 
 enabled_modules:
-  - gaming
+  - desktop
   - development
 
 packages:
   - firefox
   - alacritty
 
-exclude:
-  - nano
-
-# Runit services (Void Linux uses runit, not systemd)
 services:
   enabled:
     - dbus
     - NetworkManager
-    - bluetoothd
   disabled:
     - sshd
 
-flatpak_scope: user        # user or system
-auto_prune: false          # Remove undeclared packages on sync
-module_processing: parallel # parallel (default) or sequential
-
-config_backups:
-  enabled: true
-  max_backups: 5
+flatpak_scope: user
+auto_prune: false
 ```
 
-### Module File (`modules/gaming.yaml`)
+### Module (`modules/desktop.yaml`)
 
-```yaml
-description: Gaming packages
-
-packages:
-  - steam
-  - lutris
-  - wine
-  - gamemode
-  - flatpak:com.valvesoftware.Steam
-
-post_install_hook: scripts/setup-gaming.sh
-hook_behavior: ask    # ask | always | once | skip
-```
-
-### Directory Module (`modules/desktop/`)
-
-```
-modules/desktop/
-├── module.yaml          # Manifest
-├── packages.yaml        # Package list
-└── dotfiles/            # Auto-symlinked to ~/.config/
-    ├── hypr/
-    └── waybar/
-```
-
-`module.yaml`:
 ```yaml
 description: Desktop environment
-dotfiles_sync: true
+
+packages:
+  - i3
+  - rofi
+  - dunst
+  - picom
+  - feh
+  - sxhkd
+  - alacritty
+
 post_install_hook: scripts/setup-desktop.sh
 hook_behavior: once
 ```
 
 ---
 
-## Core Commands
+## Commands
 
 ### Package Management
+```sh
+vcli install <pkg>           # install + track in config
+vcli add <pkg1> <pkg2>       # install multiple
+vcli remove <pkg>            # remove + untrack
+vcli sync                    # apply config to system
+vcli sync --dry-run          # preview changes
+vcli sync --prune            # also remove undeclared packages
+vcli update                  # xbps-install -Su
+vcli merge                   # capture installed packages into config
+vcli merge --services        # capture running runit services
+vcli forget <pkg>            # stop tracking (keep installed)
+vcli find <pkg>              # where is this package declared?
+```
 
-```bash
-vcli install <pkg>         # Install and add to config
-vcli remove <pkg>          # Remove and drop from config
-vcli sync                  # Sync system to match config
-vcli sync --dry-run        # Preview changes
-vcli sync --prune          # Also remove undeclared packages
-vcli sync --force          # Skip confirmation
-vcli update                # xbps-install -Su (full update)
-vcli merge                 # Capture installed packages into config
-vcli merge --services      # Capture enabled runit services
-vcli forget <pkg>          # Stop tracking (keep installed)
-vcli find <pkg>            # Find where package is declared
+### Information
+```sh
+vcli status                  # config overview
+vcli list                    # all declared packages + install status
+vcli info <pkg>              # package details
+vcli why <pkg>               # what depends on this package
+vcli outdated                # packages with available updates
+vcli orphans                 # unused auto-installed deps
+vcli orphans --remove        # remove them
+vcli doctor                  # full system health check
+vcli log                     # operation history
+vcli check                   # validate all package names before syncing
+vcli validate                # check config integrity
 ```
 
 ### Modules
-
-```bash
-vcli module list                # List all modules
-vcli module enable gaming       # Enable a module
-vcli module enable              # Interactive selection (fzf)
-vcli module disable gaming      # Disable a module
-vcli module create mymodule     # Create new module from template
+```sh
+vcli module list             # show all modules
+vcli module enable gaming    # enable a module
+vcli module disable gaming   # disable a module
+vcli module create mymodule  # create new module from template
 ```
 
-### Status & Validation
-
-```bash
-vcli status                     # Show config and sync status
-vcli validate                   # Check config integrity
-vcli validate --check-packages  # Also check xbps repo availability
+### Desktop & Ricing
+```sh
+vcli desktop i3              # scaffold sxhkdrc, xprofile, helper scripts
+vcli env init                # create ~/.config/environment.sh
+vcli env set TERMINAL foot   # change default terminal everywhere
+vcli env get                 # show all env vars
+vcli theme ~/wall.jpg        # apply wallpaper + generate colors (pywal/wallust)
+vcli theme --reload          # reload dunst, sxhkd without changing wallpaper
+vcli rice create catppuccin  # create a new rice scaffold
+vcli rice list               # show all rices
+vcli dots catppuccin         # apply rice dotfiles (symlinks)
+vcli dots catppuccin --dry-run
+vcli rice current            # show active rice
 ```
 
-### Config Backup & Restore
-
-```bash
-vcli save-config                # Manual config backup
-vcli restore-config             # Interactive restore (fzf)
-```
-
-### Post-Install Hooks
-
-```bash
-vcli hooks list                 # Show all hooks and status
-vcli hooks reset gaming         # Reset hook to run again
-vcli hooks skip gaming          # Permanently skip hook
-vcli hooks run gaming           # Manually run a hook
-```
-
-### Git Integration
-
-```bash
-vcli repo init                  # Set up git for void-config
-vcli repo clone                 # Clone existing void-config
-vcli repo push                  # Commit and push changes
-vcli repo pull                  # Pull updates from remote
-vcli repo status                # Show git status
+### Git Sync (multi-machine)
+```sh
+vcli repo init               # init git for void-config
+vcli repo push               # commit + push changes
+vcli repo pull               # pull changes from remote
+vcli repo clone              # clone existing config
+vcli repo status             # git status
 ```
 
 ### Other
-
-```bash
-vcli search                     # Interactive package search (fzf + xbps-query)
-vcli edit                       # Open config file in $EDITOR
-vcli self-update                # Rebuild and update vcli itself
-vcli --json <command>           # JSON output for scripting
+```sh
+vcli save-config             # manual config backup
+vcli restore-config          # interactive restore
+vcli hooks list              # post-install hook status
+vcli hooks reset <module>    # re-run hook on next sync
+vcli edit                    # open config files in $EDITOR
+vcli search                  # interactive package search (requires fzf)
+vcli completions fish        # generate fish completions
+vcli self-update             # rebuild vcli from source
 ```
 
 ---
 
-## Differences from dcli (Arch → Void)
+## Shell Setup (fish)
 
-| Feature | dcli (Arch) | vcli (Void) |
-|---------|-------------|-------------|
-| Package manager | `pacman` / AUR (`paru`/`yay`) | `xbps-install` / `xbps-remove` |
-| Package query | `pacman -Qm` | `xbps-query -m` |
-| Service manager | `systemctl` | `sv` / runit symlinks |
-| Service enable | `systemctl enable --now` | `ln -s /etc/sv/X /var/service/` |
-| Service disable | `systemctl disable --now` | `rm /var/service/X` |
-| Config dir | `~/.config/arch-config/` | `~/.config/void-config/` |
-| Env var override | `ARCH_CONFIG_DIR` | `VOID_CONFIG_DIR` |
-| AUR support | Yes (paru/yay) | No AUR (xbps has void-packages) |
-| Flatpak support | Yes | Yes |
-| Lua scripting | Yes | Not yet (YAML only) |
-| TUI (ratatui) | Yes | Not yet |
+Add to `~/.config/fish/functions/vcli.fish`:
+
+```fish
+function vcli
+    set root_cmds sync install add remove update orphans doctor
+    if contains -- $argv[1] $root_cmds
+        sudo -E /usr/local/bin/vcli $argv
+    else
+        /usr/local/bin/vcli $argv
+    end
+end
+```
+
+Now `vcli sync` automatically uses sudo without you typing it. `HOME` is preserved so the config is always found.
+
+For tab completion:
+```sh
+vcli completions fish > ~/.config/fish/completions/vcli.fish
+```
+
+---
+
+## Multi-Machine Bootstrap
+
+Store your config in a private git repo, then on any fresh Void install:
+
+```sh
+sudo xbps-install -Sy git
+git clone git@github.com:yourusername/vcli.git
+cd vcli
+./bootstrap.sh
+```
+
+`bootstrap.sh` installs Rust, builds vcli, clones your config, and runs `vcli sync`.
+
+Edit `bootstrap.sh` to point to your config repo:
+```sh
+VCLI_REPO="git@github.com:yourusername/vcli.git"
+CONFIG_REPO="git@github.com:yourusername/void-config.git"
+```
 
 ---
 
 ## Runit Services
 
-Void Linux uses **runit** instead of systemd. vcli handles services by:
+Void uses runit instead of systemd. vcli handles services by:
+- **Enable**: `ln -sf /etc/sv/<name> /var/service/`
+- **Disable**: `rm -f /var/service/<name>`
 
-- **Enable**: creates a symlink `ln -sf /etc/sv/<name> /var/service/`
-- **Disable**: removes the symlink `rm -f /var/service/<name>`
-- Runit auto-starts enabled services
-
-Service names must match directories in `/etc/sv/`. Common ones:
+Service names must match directories in `/etc/sv/`:
 ```yaml
 services:
   enabled:
     - dbus
     - NetworkManager
     - bluetoothd
-    - sshd
-    - cupsd
-    - cronie
     - docker
+    - cronie
 ```
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VOID_CONFIG_DIR` | `~/.config/void-config` | Config directory |
-| `EDITOR` | `vi` | Editor for `vcli edit` |
-| `VCLI_SRC_DIR` | `~/vcli` | Source dir for `vcli self-update` |
+| Variable | Default | Effect |
+|----------|---------|--------|
+| `VOID_CONFIG_DIR` | `~/.config/void-config` | Config location |
+| `EDITOR` | `vi` | Used by `vcli edit` |
+| `VCLI_SRC_DIR` | `~/vcli` | Used by `vcli self-update` |
+
+---
+
+## Building from Source
+
+```sh
+git clone https://github.com/elshaddoll-v/vcli.git
+cd vcli
+cargo build --release
+sudo cp target/release/vcli /usr/local/bin/vcli
+```
+
+Requires Rust 1.70+. All dependencies are fetched by cargo automatically.
+
+---
+
+## Differences from dcli (Arch → Void)
+
+| | dcli (Arch) | vcli (Void) |
+|-|-------------|-------------|
+| Package manager | pacman + AUR | xbps-install |
+| Service manager | systemd | runit / sv |
+| Config dir | `~/.config/arch-config` | `~/.config/void-config` |
+| AUR support | Yes | No (use void-packages) |
+| Lua scripting | Yes | Planned |
+| TUI (ratatui) | Yes | Planned |
 
 ---
 
 ## License
 
-0BSD — same as dcli.
+0BSD — do whatever you want with it.
 
 ## Credits
 
-This project is a Void Linux port of [dcli](https://gitlab.com/theblackdon/dcli) by Black Don.
+Inspired by [dcli](https://gitlab.com/theblackdon/dcli) by Black Don.

@@ -10,22 +10,72 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use config::ConfigPaths;
 
-/// Print a helpful error and exit if a root-required command runs without root.
-/// sudo is handled by the fish function in ~/.config/fish/functions/vcli.fish
-/// which preserves HOME correctly. The binary itself never calls sudo.
-fn check_root(cmd: &Commands) {
-    if !needs_root(cmd) { return; }
-    if unsafe { libc::geteuid() } == 0 { return; }
+/// Handle root escalation cleanly.
+///
+/// Strategy:
+/// 1. If already root AND HOME looks wrong (points to /root), fix HOME
+///    by reading SUDO_USER and finding their real home directory.
+/// 2. If not root and command needs root, re-exec with sudo -E automatically.
+///    -E preserves the environment so HOME stays correct.
+///
+/// This means `vcli sync` just works whether you type it as root, with sudo,
+/// or as a normal user — no fish function required.
+fn handle_root(cmd: &Commands) {
+    let is_root = unsafe { libc::geteuid() } == 0;
 
-    eprintln!("{}", "\x1b[31m✗ This command requires root.\x1b[0m");
-    eprintln!();
-    eprintln!("Run with:");
-    eprintln!("  sudo -E vcli {}", std::env::args().skip(1).collect::<Vec<_>>().join(" "));
-    eprintln!();
-    eprintln!("Or set up the fish function (do this once):");
-    eprintln!("  vcli desktop i3   # creates ~/.config/fish/functions/vcli.fish");
-    eprintln!("  # Then just type 'vcli sync' — fish handles sudo automatically");
-    std::process::exit(1);
+    if is_root {
+        // Fix HOME if sudo messed it up
+        // When user runs `sudo vcli`, HOME becomes /root unless sudo -E was used
+        // Detect this and fix it using SUDO_USER
+        let home = std::env::var("HOME").unwrap_or_default();
+        if home == "/root" || home.is_empty() {
+            if let Ok(sudo_user) = std::env::var("SUDO_USER") {
+                if !sudo_user.is_empty() && sudo_user != "root" {
+                    // Get the real home directory of the original user
+                    let real_home = get_user_home(&sudo_user);
+                    if let Some(real_home) = real_home {
+                        std::env::set_var("HOME", &real_home);
+                        // Also fix XDG dirs if they point to /root
+                        if std::env::var("XDG_CONFIG_HOME").unwrap_or_default().starts_with("/root") {
+                            std::env::set_var("XDG_CONFIG_HOME", format!("{}/.config", real_home));
+                        }
+                    }
+                }
+            }
+        }
+        return;
+    }
+
+    // Not root — re-exec with sudo if needed
+    if needs_root(cmd) {
+        let args: Vec<String> = std::env::args().collect();
+        let status = std::process::Command::new("sudo")
+            .arg("-E")  // preserve environment (keeps HOME correct)
+            .args(&args)
+            .status()
+            .unwrap_or_else(|_| {
+                eprintln!("sudo not found. Please install sudo or run as root.");
+                std::process::exit(1);
+            });
+        std::process::exit(status.code().unwrap_or(1));
+    }
+}
+
+/// Get the home directory of a user by reading /etc/passwd
+fn get_user_home(username: &str) -> Option<String> {
+    let passwd = std::fs::read_to_string("/etc/passwd").ok()?;
+    for line in passwd.lines() {
+        let fields: Vec<&str> = line.split(':').collect();
+        if fields.len() >= 6 && fields[0] == username {
+            return Some(fields[5].to_string());
+        }
+    }
+    // Fallback: try /home/<username>
+    let fallback = format!("/home/{}", username);
+    if std::path::Path::new(&fallback).exists() {
+        return Some(fallback);
+    }
+    None
 }
 
 fn needs_root(cmd: &Commands) -> bool {
@@ -222,7 +272,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Check root BEFORE creating ConfigPaths so error message is clear
-    check_root(&cli.command);
+    handle_root(&cli.command);
 
     let paths = ConfigPaths::new()?;
 

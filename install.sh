@@ -1,18 +1,24 @@
 #!/bin/bash
 # vcli install script for Void Linux
+# Usage: ./install.sh
 set -e
 
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 BINARY_NAME="vcli"
 
-echo "==> vcli installer for Void Linux"
+echo "==> vcli — declarative package manager for Void Linux"
 echo ""
 
-# Check for Rust
+# ── Check we're on Void Linux ─────────────────────────────────────────────────
+if ! command -v xbps-install &>/dev/null; then
+    echo "ERROR: xbps-install not found."
+    echo "vcli is designed for Void Linux only."
+    exit 1
+fi
+
+# ── Rust ─────────────────────────────────────────────────────────────────────
 if ! command -v cargo &>/dev/null; then
-    if [ -f "$HOME/.cargo/env" ]; then
-        source "$HOME/.cargo/env"
-    fi
+    [ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 fi
 
 if ! command -v cargo &>/dev/null; then
@@ -21,24 +27,28 @@ if ! command -v cargo &>/dev/null; then
     source "$HOME/.cargo/env"
 fi
 
-echo "==> Rust found: $(rustc --version)"
+echo "==> Rust: $(rustc --version)"
 echo ""
 
-# Build
-echo "==> Building vcli (release mode)..."
+# ── C compiler (required by Rust linker) ─────────────────────────────────────
+if ! command -v cc &>/dev/null; then
+    echo "==> C compiler not found. Installing gcc..."
+    sudo xbps-install -Sy gcc
+fi
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+echo "==> Building vcli..."
 cargo build --release
 
 BINARY="target/release/${BINARY_NAME}"
-
 if [ ! -f "$BINARY" ]; then
-    echo "ERROR: Build failed — binary not found at $BINARY"
+    echo "ERROR: Build failed."
     exit 1
 fi
 
-# Install
+# ── Install ───────────────────────────────────────────────────────────────────
 echo ""
 echo "==> Installing to ${INSTALL_DIR}/${BINARY_NAME}..."
-
 if [ -w "$INSTALL_DIR" ]; then
     cp "$BINARY" "${INSTALL_DIR}/${BINARY_NAME}"
     chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
@@ -48,27 +58,39 @@ else
 fi
 
 echo ""
-echo "✓ vcli installed to ${INSTALL_DIR}/${BINARY_NAME}"
+echo "✓ vcli installed!"
 echo ""
 
-# Check optional dependencies
-echo "==> Checking optional dependencies..."
-check_opt() {
+# ── Optional deps ─────────────────────────────────────────────────────────────
+echo "==> Optional dependencies:"
+check() {
     if command -v "$1" &>/dev/null; then
         echo "  ✓ $1"
     else
-        echo "  ✗ $1 (optional — install with: xbps-install -S $2)"
+        echo "  ✗ $1  →  xbps-install -S $2"
     fi
 }
-
-check_opt "fzf" "fzf"
-check_opt "flatpak" "flatpak"
-check_opt "git" "git"
+check "fzf"     "fzf"
+check "wal"     "python3-pywal"
+check "git"     "git"
+check "flatpak" "flatpak"
 
 echo ""
+echo "==> Shell setup (fish):"
+echo "    Create ~/.config/fish/functions/vcli.fish with:"
+echo ""
+echo "    function vcli"
+echo "        set root_cmds sync install add remove update orphans doctor"
+echo "        if contains -- \$argv[1] \$root_cmds"
+echo "            sudo -E /usr/local/bin/vcli \$argv"
+echo "        else"
+echo "            /usr/local/bin/vcli \$argv"
+echo "        end"
+echo "    end"
+echo ""
 echo "==> Get started:"
-echo "    vcli init          # Initialize void-config"
-echo "    vcli sync          # Sync packages to match config"
-echo "    vcli install vim   # Install a package and track it"
-echo "    vcli help          # Show all commands"
+echo "    vcli init          # create ~/.config/void-config/"
+echo "    vcli merge         # capture installed packages"
+echo "    vcli sync          # apply config to system"
+echo "    vcli --help        # all commands"
 echo ""
