@@ -1,0 +1,7 @@
+description: Fish shell and plugins
+
+packages:
+  - fish-shell
+  - starship
+  - zoxide
+  - atuin

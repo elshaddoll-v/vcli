@@ -1,0 +1,11 @@
+description: GNOME desktop environment
+
+packages:
+  - gnome
+  - gnome-terminal
+  - gnome-tweaks
+  - gnome-extensions-app
+  - nautilus
+  - gedit
+  - eog
+  - evince

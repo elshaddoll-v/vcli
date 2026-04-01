@@ -1,0 +1,11 @@
+description: dwm window manager (build from source)
+
+packages:
+  - libX11-devel
+  - libXft-devel
+  - libXinerama-devel
+  - dmenu
+  - xdotool
+
+# post_install_hook: scripts/build-dwm.sh
+# hook_behavior: once

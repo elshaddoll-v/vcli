@@ -1,0 +1,10 @@
+description: Theming tools and icon packs
+
+packages:
+  - papirus-icon-theme
+  - python3-pywal
+  - wpgtk
+  - nwg-look
+  - lxappearance
+  - qt5ct
+  - kvantum

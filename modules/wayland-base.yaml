@@ -1,0 +1,14 @@
+description: Wayland base packages
+
+packages:
+  - wayland
+  - wayland-protocols
+  - xwayland
+  - qt5-wayland
+  - qt6-wayland
+  - gtk-layer-shell
+  - xdg-desktop-portal
+  - wl-clipboard
+  - grim
+  - slurp
+  - mako

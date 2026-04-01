@@ -1,0 +1,13 @@
+description: KDE Plasma desktop environment
+
+packages:
+  - kde5
+  - kde5-baseapps
+  - plasma-desktop
+  - plasma-nm
+  - konsole
+  - dolphin
+  - kate
+  - ark
+  - gwenview
+  - spectacle

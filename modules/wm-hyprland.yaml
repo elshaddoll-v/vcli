@@ -1,0 +1,12 @@
+description: Hyprland Wayland compositor
+
+packages:
+  - hyprland
+  - xdg-desktop-portal-hyprland
+  - waybar
+  - wofi
+  - dunst
+  - grim
+  - slurp
+  - wl-clipboard
+  - hyprpaper

@@ -61,6 +61,20 @@ echo ""
 echo "✓ vcli installed!"
 echo ""
 
+# ── Install built-in modules ──────────────────────────────────────────────────
+if [ -d "modules" ]; then
+    echo "==> Installing built-in module library..."
+    if [ -w "/usr/local/share" ]; then
+        mkdir -p /usr/local/share/vcli/modules
+        cp modules/*.yaml /usr/local/share/vcli/modules/
+    else
+        sudo mkdir -p /usr/local/share/vcli/modules
+        sudo cp modules/*.yaml /usr/local/share/vcli/modules/
+    fi
+    echo "✓ $(ls modules/*.yaml | wc -l) built-in modules installed"
+    echo ""
+fi
+
 # ── Optional deps ─────────────────────────────────────────────────────────────
 echo "==> Optional dependencies:"
 check() {

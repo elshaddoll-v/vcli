@@ -1,0 +1,11 @@
+description: PulseAudio audio system
+
+packages:
+  - pulseaudio
+  - pamixer
+  - pavucontrol
+  - playerctl
+
+services:
+  enabled:
+    - pulseaudio

@@ -1,0 +1,22 @@
+description: X11 base packages needed by any WM or DE
+
+packages:
+  - xorg-minimal
+  - xorg-input-drivers
+  - xorg-video-drivers
+  - xinit
+  - xauth
+  - xrandr
+  - xset
+  - setxkbmap
+  - xrdb
+  - xclip
+  - xsel
+  - feh
+  - picom
+  - dunst
+  - libnotify
+  - rofi
+  - sxhkd
+  - flameshot
+  - redshift

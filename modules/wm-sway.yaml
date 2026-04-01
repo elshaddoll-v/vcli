@@ -1,0 +1,13 @@
+description: Sway Wayland compositor
+
+packages:
+  - sway
+  - swaybar
+  - swaylock
+  - swayidle
+  - waybar
+  - wofi
+  - mako
+  - grim
+  - slurp
+  - wl-clipboard

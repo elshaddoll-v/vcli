@@ -1,0 +1,7 @@
+description: bspwm window manager
+
+packages:
+  - bspwm
+  - sxhkd
+  - xdotool
+  - wmctrl

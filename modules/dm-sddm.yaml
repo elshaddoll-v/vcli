@@ -1,0 +1,8 @@
+description: SDDM display manager
+
+packages:
+  - sddm
+
+services:
+  enabled:
+    - sddm

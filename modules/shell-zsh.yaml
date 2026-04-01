@@ -1,0 +1,10 @@
+description: Zsh shell and plugins
+
+packages:
+  - zsh
+  - zsh-autosuggestions
+  - zsh-syntax-highlighting
+  - zsh-history-substring-search
+  - starship
+  - zoxide
+  - atuin

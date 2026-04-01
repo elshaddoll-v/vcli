@@ -1,0 +1,20 @@
+description: Base system services
+
+packages:
+  - dbus
+  - elogind
+  - polkit
+  - udisks2
+  - upower
+  - NetworkManager
+  - network-manager-applet
+  - bluez
+  - brightnessctl
+  - acpi
+
+services:
+  enabled:
+    - dbus
+    - NetworkManager
+    - bluetoothd
+    - elogind

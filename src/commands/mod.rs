@@ -27,3 +27,4 @@ pub mod desktop;
 pub mod env_cmd;
 pub mod rice;
 pub mod theme;
+pub mod builtin_modules;

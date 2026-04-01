@@ -1,0 +1,8 @@
+description: awesome window manager
+
+packages:
+  - awesome
+  - vicious
+  - lua53-lpeg
+  - lua53-luafilesystem
+  - luarocks

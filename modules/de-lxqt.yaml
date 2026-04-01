@@ -1,0 +1,8 @@
+description: LXQt desktop environment
+
+packages:
+  - lxqt
+  - lxqt-sudo
+  - pcmanfm-qt
+  - featherpad
+  - lximage-qt

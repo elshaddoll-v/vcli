@@ -1,0 +1,15 @@
+description: PipeWire audio system
+
+packages:
+  - pipewire
+  - pipewire-pulse
+  - alsa-pipewire
+  - wireplumber
+  - pamixer
+  - playerctl
+  - pavucontrol
+
+services:
+  enabled:
+    - pipewire
+    - wireplumber

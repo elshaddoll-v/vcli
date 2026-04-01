@@ -1,0 +1,11 @@
+description: Media players and tools
+
+packages:
+  - mpv
+  - vlc
+  - mpd
+  - ncmpcpp
+  - mpc
+  - ffmpeg
+  - yt-dlp
+  - imagemagick

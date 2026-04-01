@@ -1,0 +1,10 @@
+description: Fonts collection
+
+packages:
+  - nerd-fonts
+  - ttf-ubuntu-font-family
+  - dejavu-fonts-ttf
+  - font-inconsolata-otf
+  - terminus-font
+  - noto-fonts-ttf
+  - noto-fonts-emoji

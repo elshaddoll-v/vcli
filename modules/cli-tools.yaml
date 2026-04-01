@@ -1,0 +1,39 @@
+description: Essential CLI tools (modern replacements)
+
+packages:
+  # Search and find
+  - fzf
+  - fd
+  - ripgrep
+  - bat
+  - eza
+  - lsd
+  - tree
+
+  # System monitoring
+  - btop
+  - bottom
+  - procs
+  - htop
+
+  # File management
+  - yazi
+  - nnn
+  - ranger
+
+  # Git
+  - git
+  - delta
+  - lazygit
+  - tig
+
+  # Other
+  - jq
+  - yq
+  - just
+  - tmux
+  - zoxide
+  - starship
+  - atuin
+  - fastfetch
+  - neofetch

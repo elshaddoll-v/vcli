@@ -1,0 +1,9 @@
+description: LightDM display manager
+
+packages:
+  - lightdm
+  - lightdm-gtk-greeter
+
+services:
+  enabled:
+    - lightdm

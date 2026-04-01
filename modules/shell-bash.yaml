@@ -1,0 +1,8 @@
+description: Bash enhancements
+
+packages:
+  - bash
+  - bash-completion
+  - starship
+  - zoxide
+  - atuin

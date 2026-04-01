@@ -1,0 +1,10 @@
+description: Terminal emulators
+
+packages:
+  - alacritty
+  - kitty
+  - wezterm
+  - ghostty
+  - foot
+  - tmux
+  - zellij

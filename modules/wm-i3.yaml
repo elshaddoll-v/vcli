@@ -1,0 +1,10 @@
+description: i3 window manager
+
+packages:
+  - i3
+  - i3status
+  - i3lock
+  - i3blocks
+  - dmenu
+  - xdotool
+  - wmctrl

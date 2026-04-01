@@ -1,0 +1,9 @@
+description: Gaming packages
+
+packages:
+  - steam
+  - lutris
+  - wine
+  - gamemode
+  - mangohud
+  - protonup-qt

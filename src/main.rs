@@ -267,6 +267,14 @@ enum ModuleAction {
     Create  { path: String },
 }
 
+#[derive(Subcommand)]
+enum ModulesAction {
+    /// List all built-in modules
+    List,
+    /// Add a built-in module to your config (interactive if no name given)
+    Add { name: Option<String> },
+}
+
 fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
     let cli = Cli::parse();

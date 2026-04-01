@@ -1,0 +1,13 @@
+description: Base development tools
+
+packages:
+  - base-devel
+  - git
+  - neovim
+  - vim
+  - nodejs
+  - python3
+  - python3-pip
+  - rustup
+  - make
+  - cmake

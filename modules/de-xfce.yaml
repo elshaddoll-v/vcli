@@ -1,0 +1,11 @@
+description: XFCE desktop environment
+
+packages:
+  - xfce4
+  - xfce4-terminal
+  - xfce4-notifyd
+  - xfce4-pulseaudio-plugin
+  - thunar
+  - ristretto
+  - mousepad
+  - xfburn

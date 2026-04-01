@@ -1,0 +1,14 @@
+description: Laptop-specific packages
+
+packages:
+  - brightnessctl
+  - acpi
+  - acpid
+  - tlp
+  - powertop
+  - xf86-input-synaptics
+
+services:
+  enabled:
+    - acpid
+    - tlp
