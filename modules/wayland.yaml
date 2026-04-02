@@ -1,0 +1,8 @@
+description: Wayland display server base
+packages:
+  - wayland
+  - wayland-protocols
+  - xwayland
+  - xdg-desktop-portal
+  - xdg-utils
+  - wl-clipboard

@@ -275,6 +275,22 @@ enum ModulesAction {
     Add { name: Option<String> },
 }
 
+#[derive(Subcommand)]
+enum CatalogAction {
+    /// List all built-in modules
+    List,
+    /// Install a module from the catalog into your void-config
+    Install {
+        /// Module name (e.g. wm-i3, shell-fish, cli-modern)
+        name: String,
+        /// Also enable the module after installing
+        #[arg(long)]
+        enable: bool,
+    },
+    /// Install ALL catalog modules into your void-config
+    All,
+}
+
 fn main() -> Result<()> {
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
     let cli = Cli::parse();

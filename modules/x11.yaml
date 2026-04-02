@@ -1,0 +1,15 @@
+description: X11 display server (required for all X11 WMs and DEs)
+packages:
+  - xorg-minimal
+  - xorg-input-drivers
+  - xorg-video-drivers
+  - xinit
+  - xauth
+  - xrdb
+  - xset
+  - setxkbmap
+  - xclip
+  - xsel
+services:
+  enabled:
+    - dbus

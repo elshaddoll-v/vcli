@@ -1,0 +1,15 @@
+description: Common desktop tools (notifications, screenshots, launcher)
+packages:
+  - dunst
+  - libnotify
+  - rofi
+  - flameshot
+  - maim
+  - picom
+  - redshift
+  - network-manager-applet
+  - brightnessctl
+  - udiskie
+  - udisks2
+  - polkit
+  - lxsession

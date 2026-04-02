@@ -1,9 +1,10 @@
 description: Gaming packages
-
 packages:
   - steam
   - lutris
   - wine
+  - winetricks
   - gamemode
   - mangohud
-  - protonup-qt
+  - vkd3d
+  - vulkan-loader

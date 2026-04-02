@@ -59,6 +59,16 @@ fi
 
 echo ""
 echo "✓ vcli installed!"
+
+# ── Install bundled modules ────────────────────────────────────────────────────
+if [ -d "modules" ]; then
+    echo "==> Installing bundled modules to /usr/share/vcli/modules..."
+    sudo mkdir -p /usr/share/vcli/modules
+    sudo cp -r modules/* /usr/share/vcli/modules/
+    sudo mkdir -p /usr/share/vcli/scripts
+    [ -d "scripts" ] && sudo cp -r scripts/* /usr/share/vcli/scripts/
+    echo "✓ Modules installed"
+fi
 echo ""
 
 # ── Install built-in modules ──────────────────────────────────────────────────

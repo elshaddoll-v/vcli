@@ -71,7 +71,7 @@ packages:
     let gitignore_content = "state/config-backups/\n";
     fs::write(&gitignore, gitignore_content).context("Failed to create .gitignore")?;
 
-    println!("{}", "✓ void-config initialized!".green());
+println!("{}", "✓ void-config initialized!".green());
     println!();
     println!("  Location:  {}", paths.config_dir.display());
     println!("  Host file: {}", host_file.display());
@@ -166,4 +166,47 @@ default_apps:
 "#,
         hostname = hostname
     )
+}
+
+fn copy_bundled_modules(paths: &crate::config::ConfigPaths) -> anyhow::Result<()> {
+    // Look for modules bundled with vcli binary
+    // Check next to the binary, then /usr/share/vcli/modules
+    let binary_path = std::env::current_exe().unwrap_or_default();
+    let binary_dir = binary_path.parent().unwrap_or(std::path::Path::new("/usr/local/bin"));
+
+    let search_paths = [
+        binary_dir.join("../share/vcli/modules"),
+        binary_dir.join("modules"),
+        std::path::PathBuf::from("/usr/share/vcli/modules"),
+        std::path::PathBuf::from("/usr/local/share/vcli/modules"),
+    ];
+
+    let src_modules = search_paths.iter().find(|p| p.exists());
+
+    if let Some(src) = src_modules {
+        let dst = paths.modules_dir();
+        fs::create_dir_all(&dst)?;
+
+        let mut count = 0;
+        for entry in walkdir::WalkDir::new(src).into_iter().filter_map(|e| e.ok()) {
+            let path = entry.path();
+            if path.is_file() && path.extension().map(|e| e == "yaml").unwrap_or(false) {
+                let relative = path.strip_prefix(src).unwrap_or(path);
+                let dest = dst.join(relative);
+                if let Some(parent) = dest.parent() {
+                    fs::create_dir_all(parent)?;
+                }
+                // Don't overwrite existing user modules
+                if !dest.exists() {
+                    fs::copy(path, &dest)?;
+                    count += 1;
+                }
+            }
+        }
+        if count > 0 {
+            println!("  {} Installed {} bundled modules", "✓".green(), count);
+        }
+    }
+
+    Ok(())
 }

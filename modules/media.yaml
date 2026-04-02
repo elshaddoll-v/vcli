@@ -1,11 +1,11 @@
-description: Media players and tools
-
+description: Media playback and production
 packages:
   - mpv
   - vlc
+  - ffmpeg
   - mpd
   - ncmpcpp
   - mpc
-  - ffmpeg
-  - yt-dlp
-  - imagemagick
+  - playerctl
+  - gimp
+  - inkscape
